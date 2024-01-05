@@ -1,6 +1,5 @@
 # Shark-Attacks
 Lab of Shark Attacks with Angel Expósito 
-We use . Worked in tandem with Aida García and Javier Gómez.
 
 For this project, we are use a dataset of shark attacks ( https://www.kaggle.com/datasets/felipeesc/shark-attack-dataset )
 
