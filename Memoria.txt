@@ -1,0 +1,81 @@
+IRONHACK- DATA ANALYTICS- LAB SHARK ATTACKS
+Laura Ballesteros
+Ángel Expósito
+
+Al reunirnos el equipo, hemos visto que partimos de la pregunta negocio ¿Fatalidad de los ataques de tiburones? 
+
+Para ello, vamos a crear un nuevo cuaderno en VS Code donde vamos a intentar mejorar nuestro modelo, ya que actualmente acierta un 23% acerca de la fatalidad en los humanos, cuando son atacados por tiburones. Dado que hemos realizado dos tipos de modelos con limpiezas de datos, y modelos distintos, hemos decidido, por lo tanto, coger el dataset seleccionado ya que se acerca más a la realidad. El dataset corresponde al cuaderno individual de Ángel.
+
+Primeramente, debemos describir nuestra dataset, si realiza lo que queremos que realice o no (nuestra prueba de negocio, es decir, si puede predecir con la mayor fiabilidad, la fatalidad(mortalidad) del ataque de los tiburones,y dónde es más probable que pueda ocurrir, cúales son las actividades más peligrosas donde hay mayor ataque de tiburones, si están relacionados la edad y el sexo, etc), y qué podemos hacer para mejorarla.
+
+1.1 Optimizacion del modelo actual: que podemos conseguir con lo que tenemos.
+
+1.1.1 Eliminacion de Outliers.
+Escalar datos de forma diferente, empezando por eliminar los 'outliers'. Para ello hay que calcular el rango intercuartil y filtrar la base de datos para quedarnos con los datos que no son outliers.
+
+Hay que calcular el intercuartile de año y year mediante:
+
+summary = num_df.describe().T
+IQR = summary["75%"] - summary ["25%"]
+left_end = summary["25%"] - 1,5 *IQR
+rigth_end = summary["75%"] + 1,5 *IQR
+print(left_end, right end)
+
+Utilizando el codigo conseguimos los intercuartiles para poder concretar que datos están dentro del IQR y qué datos están en la zona de "Outliers" para ello falta filtrar.
+
+Para obtener todos los outliers de "year" y "age" juntos, utilizamos:
+
+outliers = final_df[final_df["year"] <= left_end["year] | final_df[final_df["year"] => left_end["year"] |final_df[final_df["age"] <= left_end["age"] | final_df[final_df["age"] => left_end["age"] 
+outliers
+
+Aunque hay datos dentro del baremo, como pasa de los rangos indicados, el programa los quita.
+Usaremos:
+merged_df = final_df.merge(outliers, indicator = True, how = 'left', on=list(final_df.columns))
+filtered_df = merged_df['_merge'] == 'left_only'].drop(columns='_merge')
+filtered_df = filtered_df.reset_index().drop(columns='index')
+num_df.shape[0]= filtered_df.shape[0]
+
+Filtramos los valores, siguiendo el intercuartil, hemos eliminado unos 600 datos del dataframe, que estaban fuera de nuestro rango estudiado.
+Los valores para que no sean eliminados, deben estar entre:
+Year: 1855 -2095
+Age: 6.5 y 42.5
+
+Todos los valores que estén por encima o por debajo de esas franjas tanto en year como age, no aparecerán en la lista y tras añadir el codigo serán eliminados de nuestro DataFrame.
+
+1.1.2.Balancear el modelo: 
+Mejorar el modelo que ya tenemos. Dado que tenemos un programa que mayormente dice 'No', debemos balancear el modelo para que aprenda y equilibre más entre el 'No' y el 'Sí'. Una vez que hemos balanceado, es necesario escalar de nuevo para poder testear y realizar de nuevo la clasificación.
+Por tanto el programa ha dicho más veces que 'Sí' y  que por tanto, se equivoque más.
+
+Realizando los cambios, obtenemos mejor puntuacion al añadir classification.score(X_test_scaled, y_test), anteriormente era 0.759 y ahora obtenemos un 0.984. Por tanto los resultados son mejores, y el modelo también.
+
+1.1.3. Prueba de testeo.
+
+Hemos pensado, que para conseguir un análisis completo, es necesario probar las nuevas métricas en nuestro modelo mejorado. Hemos probado nuevas formas de escalar, diferentes escalados, en el balance general y hay una diferencia ínfima entre ambos resultados, entre el MinMaxScaled y el StandarScaled. Observamos que el standarscaled funciona mejor ya que con el MinMax solo obtenemos mayor precisión, pero el resto de métricas empeoran en milésimas.
+
+Para ello, realizamos las metricas de Accuracy, recall, precision, f1,roc_auc. Todas las métricas tienen un valor mayor de 0.95.
+
+Por tanto la regresion logística parece estár funcionando correctamente y el modelo ha mejorado.
+
+1.2.Feature Selection: Para hacer cambios en el modelo y mejorarlo.
+
+Utilizaríamos un tipo de seleccion iterativa y para ello deberíamos elegir entre:
+
+-Forward (empezar con un predictor y se van añadiendo mas)
+->Backward (empezamos con todos los predictores y vamos quitando)
+
+Una vez hecho el balanceo de modelo, al tener la mejoría en el programa, ya no es necesario hacer un feature selection ya que hemos conseguido unos valores muy positivos que mejorar el modelo en gran medida.
+
+
+Conclusión:
+
+Hemos desarrollo un modelo donde tenemos un programa que nos predice de forma medianamente eficaz, la fatalidad del ataque de tiburones.
+
+En base a los predictores de:
+-Zonas de riesgo divididas en: alto riesgo, mediano riesgo, bajo riesgo y poca probabilidad.
+-Actividades: surfing, diving, actividades de playa, barcos,etc. 
+-Si ha sido provocado o no provocado, 
+-El sexo y la edad de la víctima, 
+-El año en el que ha ocurrido el accidente,
+-El tamaño del tiburón si pertenece a la especie grande, mediana o pequeña,
+-Por último, la fatalidad del incidente, si ha resultado mortal o no.
+
